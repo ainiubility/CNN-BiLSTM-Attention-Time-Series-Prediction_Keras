@@ -26,9 +26,9 @@ def attention_3d_block(inputs):
     if SINGLE_ATTENTION_VECTOR:
         a = Lambda(lambda x: K.mean(x, axis=1), name='dim_reduction')(a)
         a = RepeatVector(input_dim)(a)
-    a_probs = Permute((1, 2), name='attention_vec')(a)
+    a_probs = Permute((1, 2), name='attention_vec')(a)#维数转置
 
-    output_attention_mul = merge([inputs, a_probs], name='attention_mul', mode='mul')
+    output_attention_mul = merge([inputs, a_probs], name='attention_mul', mode='mul')#把两个矩阵拼接
     return output_attention_mul
 
 # 注意力机制的另一种写法 适合上述报错使用 来源:https://blog.csdn.net/uhauha2929/article/details/80733255
