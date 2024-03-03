@@ -10,6 +10,8 @@ from keras.models import *
 
 import  pandas as pd
 import  numpy as np
+from sklearnex import patch_sklearn
+patch_sklearn()
 
 
 
@@ -153,3 +155,4 @@ m.compile(optimizer='adam', loss='mse')
 m.fit([train_X], train_Y, epochs=10, batch_size=64, validation_split=0.1)
 #m.save("./model.h5")
 #np.save("normalize.npy",normalize)
+print("done")
