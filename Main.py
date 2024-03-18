@@ -1,9 +1,9 @@
 # 本导入顺序可以看到类型
-from attention_utils import get_activations
+# from attention_utils import get_activations
 import tensorflow as tf
 # import tensorflow_docs
-import datetime
-import os
+# import datetime
+# import os
 import pandas as pd
 import numpy as np
 
@@ -14,11 +14,11 @@ from sklearn.model_selection import train_test_split
 from sklearn import ensemble, metrics
 
 # from tensorflow import keras
-import keras
+# import keras
 from keras import layers
 from keras import models
 
-from myK import *
+import keras.backend as K
 
 # from keras.layers import merge
 # from keras.layers.core import *
@@ -39,7 +39,8 @@ def attention_3d_block(inputs):
     # a = Reshape((input_dim, TIME_STEPS))(a) # this line is not useful. It's just to know which dimension is what.
     a = layers.Dense(input_dim, activation='softmax')(a)
     if SINGLE_ATTENTION_VECTOR:
-        a = layers.Lambda(lambda x: K.mean(x, axis=1), name='dim_reduction')(a)
+        a = layers.Lambda(lambda x: tf.reduce_mean(
+            x, axis=1), name='dim_reduction')(a)
         a = layers.RepeatVector(input_dim)(a)
     a_probs = layers.Permute((1, 2), name='attention_vec')(a)  # 维数转置
 
@@ -53,12 +54,16 @@ def attention_3d_block(inputs):
 def attention_3d_block2(inputs, single_attention_vector=False):
     # 如果上一层是LSTM，需要return_sequences=True
     # inputs.shape = (batch_size, time_steps, input_dim)
-    time_steps = K.int_shape(inputs)[1]
-    input_dim = K.int_shape(inputs)[2]
+    # _shape = tf.shape(inputs,out_type=tf.TensorShape)
+    _shape = inputs.shape
+    # tf.print('attention_3d_block2')
+    if _shape is not None:
+        time_steps = _shape[1]
+        input_dim = _shape[2]
     a = layers.Permute((2, 1))(inputs)
     a = layers.Dense(time_steps, activation='softmax')(a)
     if single_attention_vector:
-        a = layers.Lambda(lambda x: K.mean(x, axis=1))(a)
+        a = layers.Lambda(lambda x: tf.reduce_mean(x, axis=1))(a)
         a = layers.RepeatVector(input_dim)(a)
 
     a_probs = layers.Permute((2, 1))(a)
@@ -92,7 +97,7 @@ def NormalizeMult(data):
     normalize = np.arange(2*data.shape[1], dtype='float64')
 
     normalize = normalize.reshape(data.shape[1], 2)
-    print(normalize.shape)
+    # print(normalize.shape)
     for i in range(0, data.shape[1]):
         # 第i列
         list = data[:, i]
@@ -150,8 +155,8 @@ data = pd.read_csv("./pollution.csv")
 
 data = data.drop(['date', 'wnd_dir'], axis=1)
 
-print(data.columns)
-print(data.shape)
+# print(data.columns)
+# print(data.shape)
 
 
 INPUT_DIMS = 7
@@ -165,7 +170,7 @@ pollution_data = data[:, 0].reshape(len(data), 1)
 train_X, _ = create_dataset(data, TIME_STEPS)
 _, train_Y = create_dataset(pollution_data, TIME_STEPS)
 
-print(train_X.shape, train_Y.shape)
+# print(train_X.shape, train_Y.shape)
 
 m = attention_model()
 m.summary()
